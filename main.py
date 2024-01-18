@@ -29,7 +29,28 @@ class TreeNode:
 
 
 class RedBlackTree:
-    __LEAF = TreeNode(None, Color.BLACK, None)
 
     def __init__(self):
-        pass
+        self.root = None
+
+    def linearize(self) -> list:
+        if self.root is None:
+            return []
+
+        stack = [self.root]
+        linear_view = []
+
+        while len(stack) > 0:
+            element = stack.pop()
+            if isinstance(element, TreeNode):
+                if element.right is not None:
+                    stack.append(element.right)
+                if element.left is not None:
+                    stack.append(element.key)
+                    stack.append(element.left)
+                else:
+                    linear_view.append(element.key)
+            else:
+                linear_view.append(element)
+
+        return linear_view
