@@ -20,12 +20,17 @@ class Color(Enum):
 
 class TreeNode:
 
-    def __init__(self, key, color: Color, p, left: Optional['TreeNode'] = None, right: Optional['TreeNode'] = None):
+    def __init__(self,
+                 key,
+                 color: Color,
+                 parent: Optional['TreeNode'] = None,
+                 left: Optional['TreeNode'] = None,
+                 right: Optional['TreeNode'] = None):
         self.color = color
         self.key = key
         self.left = left
         self.right = right
-        self.p = p
+        self.parent = parent
 
 
 class RedBlackTree:
@@ -54,3 +59,47 @@ class RedBlackTree:
                 linear_view.append(element)
 
         return linear_view
+
+    def __rotateLeft(self, x: TreeNode):
+        y = x.right
+
+        if y is None:
+            return
+
+        x.right = y.left
+
+        if y.left is not None:
+            y.left.parent = x
+
+        y.parent = x.parent
+        if x.parent is None:
+            self.root = y
+        elif x == x.parent.left:
+            x.parent.left = y
+        else:
+            x.parent.right = y
+
+        y.left = x
+        x.parent = y
+
+    def __rotateRight(self, y: TreeNode):
+        x = y.left
+
+        if x is None:
+            return
+
+        y.left = x.right
+        if x.right is not None:
+            x.right.parent = x
+
+        x.parent = y.parent
+        if y.parent is None:
+            self.root = x
+        elif y == y.parent.left:
+            y.parent.left = x
+        else:
+            y.parent.right = x
+
+        x.right = y
+        y.parent = x
+
