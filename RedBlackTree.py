@@ -98,9 +98,133 @@ class RedBlackTree:
 
         self.root.color = Color.BLACK
 
+    def delete(self, key: int):
+        node = self.__get(key)
+        self.deleteNode(node)
+
+    def get(self, key: int) -> Optional[int]:
+        node = self.__get(key)
+        return node.key if node is not None else None
+
+    def __get(self, key: int) -> Optional[TreeNode]:
+        if self.root is None:
+            return None
+
+        node = self.root
+
+        while node is not None and node.key != key:
+            if node.key > key:
+                node = node.left
+            else:
+                node = node.right
+
+        return node
+
+    def deleteNode(self, node: TreeNode):
+        if node is None:
+            return
+
+        replacingNode = node
+        replacingNodeOriginalColor = replacingNode.color
+
+        if node.left is None:
+            nodeWithPotentialRedBlackTreeViolations = node.right
+            self.__transplant(node, node.right)
+        elif node.right is None:
+            nodeWithPotentialRedBlackTreeViolations = node.left
+            self.__transplant(node, node.left)
+        else:
+            replacingNode = self.__minimum(node.right)
+            replacingNodeOriginalColor = replacingNode.color
+            nodeWithPotentialRedBlackTreeViolations = replacingNode.right
+            if replacingNode.parent == node:
+                if nodeWithPotentialRedBlackTreeViolations is not None:
+                    nodeWithPotentialRedBlackTreeViolations.parent = replacingNode
+            else:
+                self.__transplant(replacingNode, replacingNode.right)
+                replacingNode.right = node.right
+                replacingNode.right.parent = replacingNode
+            self.__transplant(node, replacingNode)
+            replacingNode.left = node.left
+            replacingNode.left.parent = replacingNode
+            replacingNode.color = node.color
+        if replacingNodeOriginalColor == Color.BLACK:
+            self.__deleteFixup(nodeWithPotentialRedBlackTreeViolations)
+
+    def __transplant(self, higherNode: TreeNode, lowerNode: TreeNode):
+        if higherNode.parent is None:
+            self.root = lowerNode
+        elif higherNode == higherNode.parent.left:
+            higherNode.parent.left = lowerNode
+        else:
+            higherNode.parent.right = lowerNode
+
+        if lowerNode is not None:
+            lowerNode.parent = higherNode.parent
+
+    @staticmethod
+    def __minimum(node: TreeNode) -> TreeNode:
+        while node.left is not None:
+            node = node.left
+        return node
+
+    def __deleteFixup(self, x: TreeNode):
+        if x is None:
+            return
+
+        while x != self.root and x.color == Color.BLACK:
+            if x == x.parent.left:
+                w = x.parent.right
+                if self.__isRed(w):
+                    w.color = Color.BLACK
+                    x.parent.color = Color.RED
+                    self.__rotateLeft(x.parent)
+                    w = x.parent.right
+                if self.__isBlack(w.left) and self.__isBlack(w.right):
+                    w.color = Color.RED
+                    x = x.parent
+                elif self.__isBlack(w.right):
+                    w.left.color = Color.BLACK
+                    w.color = Color.RED
+                    self.__rotateRight(w)
+                    w = x.parent.right
+                w.color = x.parent.color
+                x.parent.color = Color.BLACK
+                w.right.color = Color.BLACK
+                self.__rotateLeft(x.parent)
+            else:
+                w = x.parent.left
+                if self.__isRed(w):
+                    w.color = Color.BLACK
+                    x.parent.color = Color.RED
+                    self.__rotateRight(x.parent)
+                    w = x.parent.left
+                if self.__isBlack(w.left) and self.__isBlack(w.right):
+                    w.color = Color.RED
+                    x = x.parent
+                elif self.__isBlack(w.left):
+                    w.right.color = Color.BLACK
+                    w.color = Color.RED
+                    self.__rotateLeft(w)
+                    w = x.parent.left
+                w.color = x.parent.color
+                x.parent.color = Color.BLACK
+                w.left.color = Color.BLACK
+                self.__rotateRight(x.parent)
+
+            x = self.root
+
+        x.color = Color.BLACK
+
+
+
     @staticmethod
     def __isRed(node: TreeNode):
         return node is not None and node.color == Color.RED
+
+    @staticmethod
+    def __isBlack(node: TreeNode):
+        return node is None or node.color == Color.BLACK
 
     def __rotateLeft(self, x: TreeNode):
         y = x.right
