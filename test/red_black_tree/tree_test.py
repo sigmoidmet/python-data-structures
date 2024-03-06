@@ -1,7 +1,9 @@
 import random
 import unittest
 
-from RedBlackTree import RedBlackTree, TreeNode, Color
+from src.red_black_tree.color import Color
+from src.red_black_tree.node import TreeNode
+from src.red_black_tree.tree import RedBlackTree
 
 
 class RedBlackTreeTest(unittest.TestCase):
@@ -37,13 +39,13 @@ class RedBlackTreeTest(unittest.TestCase):
         for x in inputArray:
             tree.insert(x)
 
-        self.assertEquals(1, tree.get(1))
-        self.assertEquals(2, tree.get(2))
-        self.assertEquals(369, tree.get(369))
-        self.assertEquals(500, tree.get(500))
-        self.assertEquals(256, tree.get(256))
-        self.assertEquals(978, tree.get(978))
-        self.assertEquals(999, tree.get(999))
+        self.assertEqual(1, tree.get(1))
+        self.assertEqual(2, tree.get(2))
+        self.assertEqual(369, tree.get(369))
+        self.assertEqual(500, tree.get(500))
+        self.assertEqual(256, tree.get(256))
+        self.assertEqual(978, tree.get(978))
+        self.assertEqual(999, tree.get(999))
 
         self.assertIsNone(tree.get(1259))
 
