@@ -49,7 +49,15 @@ class SkipList:
             forUpdate[i].forward[i] = node
 
     def get(self, key):
-        pass
+        current = self.head
+        for i in range(self.level, -1, -1):
+            while current.forward[i] and current.forward[i].key < key:
+                current = current.forward[i]
+
+        current = current.forward[0]
+
+        return current.key if current and current.key == key else None
+
 
     def delete(self, key):
         pass
