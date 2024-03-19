@@ -37,4 +37,7 @@ class SkipListTest(unittest.TestCase):
         for key in initialData:
             skipList.add(key)
 
+        skipList.delete(19)
+
         self.assertIsNone(skipList.get(19))
+        self.assertIsNone(skipList.get(500))

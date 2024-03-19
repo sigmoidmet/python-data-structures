@@ -1,4 +1,5 @@
 import random
+from typing import Optional
 
 from src.skiplist.node import Node
 
@@ -13,21 +14,15 @@ class SkipList:
 
     def add(self, key):
         forUpdate = [None] * (self.maxLevel + 1)
-        current = self.head
+        item = self.__tryFind(key, forUpdate)
 
-        for i in range(self.level, -1, -1):
-            while current.forward[i] and current.forward[i].key < key:
-                current = current.forward[i]
-            forUpdate[i] = current
-
-        current = current.firstLevel()
-        if current is None or current.key != key:
-            randomLevel = self.chooseLevel(forUpdate)
+        if item is None or item.key != key:
+            randomLevel = self.__chooseLevel(forUpdate)
             node = Node(key, randomLevel)
-            self.rearrangeReferences(forUpdate, node)
+            self.__rearrangeReferencesAfterInsert(forUpdate, node)
 
-    def chooseLevel(self, forUpdate):
-        randomLevel = self.randomLevel()
+    def __chooseLevel(self, forUpdate):
+        randomLevel = self.__randomLevel()
 
         if randomLevel > self.level:
             for i in range(self.level + 1, randomLevel + 1):
@@ -36,31 +31,53 @@ class SkipList:
 
         return randomLevel
 
-    def randomLevel(self) -> int:
+    def __randomLevel(self) -> int:
         lvl = 0
         while random.random() < self.fractionOfLevelReferencingNextLevel and lvl < self.maxLevel:
             lvl += 1
         return lvl
 
     @staticmethod
-    def rearrangeReferences(forUpdate: [Node], node: Node):
+    def __rearrangeReferencesAfterInsert(forUpdate: [Node], node: Node):
         for i in range(len(node.forward)):
             node.forward[i] = forUpdate[i].forward[i]
             forUpdate[i].forward[i] = node
 
     def get(self, key):
+        item = self.__tryFind(key)
+
+        return item.key if item and item.key == key else None
+
+    def delete(self, key):
+        forUpdate = [None] * (self.maxLevel + 1)
+        item = self.__tryFind(key, forUpdate)
+
+        if item is None or item.key != key:
+            return
+
+        self.__rearrangeReferencesAfterDelete(forUpdate, item)
+        self.__fixLevel()
+
+    def __tryFind(self, key, forUpdate=None) -> Optional[Node]:
         current = self.head
+
         for i in range(self.level, -1, -1):
             while current.forward[i] and current.forward[i].key < key:
                 current = current.forward[i]
+            if forUpdate:
+                forUpdate[i] = current
 
-        current = current.forward[0]
+        return current.firstLevel()
 
-        return current.key if current and current.key == key else None
+    def __rearrangeReferencesAfterDelete(self, forUpdate: [Node], item: Node):
+        for i in range(self.level + 1):
+            if forUpdate[i].forward[i] != item:
+                break
+            forUpdate[i].forward[i] = item.forward[i]
 
-
-    def delete(self, key):
-        pass
+    def __fixLevel(self):
+        while self.level > 0 and self.head.forward[self.level] is None:
+            self.level -= 1
 
     def linearize(self) -> [int]:
         result = []
