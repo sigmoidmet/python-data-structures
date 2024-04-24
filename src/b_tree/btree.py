@@ -35,19 +35,16 @@ class BTree:
     def __hasTooManyKeys(self, node: Node) -> bool:
         return len(node.keys) == self.__maxKeys()
 
-    def __splitChild(self, node: Node, childIndex):
+    def __splitChild(self, node: Node, childIndex: int):
         child = node.child[childIndex]
         splitChildSecondPart = Node(child.isLeaf)
         node.child.insert(childIndex + 1, splitChildSecondPart)
         node.keys.insert(childIndex, child.keys[self.termMinimumDegree - 1])
         splitChildSecondPart.keys = child.keys[self.termMinimumDegree: self.__maxKeys()]
-        child.keys = child.keys[0: self.termMinimumDegree - 1]
+        child.keys = child.keys[0: self.termMinimumDegree]
         if not child.isLeaf:
             splitChildSecondPart.child = child.child[self.termMinimumDegree: 2 * self.termMinimumDegree]
-            child.child = child.child[0: self.termMinimumDegree - 1]
-
-    def __maxKeys(self) -> int:
-        return (2 * self.termMinimumDegree) - 1
+            child.child = child.child[0: self.termMinimumDegree]
 
     def __insertToNode(self, node: Node, key):
         indexToInsert = len(node.keys) - 1
@@ -60,10 +57,31 @@ class BTree:
         else:
             while indexToInsert >= 0 and key < node.keys[indexToInsert]:
                 indexToInsert -= 1
-            indexToInsert += 1
+            if indexToInsert + 1 != len(node.child):
+                indexToInsert += 1
             if len(node.child[indexToInsert].keys) == self.__maxKeys():
                 self.__splitChild(node, indexToInsert)
                 if key > node.keys[indexToInsert]:
                     indexToInsert += 1
             self.__insertToNode(node.child[indexToInsert], key)
 
+    def __maxKeys(self) -> int:
+        return (2 * self.termMinimumDegree) - 1
+
+    def get(self, key):
+        return self.__get(key, self.root)
+
+    def __get(self, key, node: Node):
+        if node is None:
+            return
+        i = 0
+        while i < len(node.keys) and key > node.keys[i]:
+            i += 1
+
+        if i < len(node.keys) and key == node.keys[i]:
+            return key
+
+        if node.isLeaf:
+            return None
+
+        return self.__get(key, node.child[i])
